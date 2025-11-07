@@ -5,6 +5,7 @@ export async function detectHeadphones() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+    console.log(device)
     
     // Check if any output device label mentions headphones
     const hasHeadphones = audioOutputs.some(device => {
