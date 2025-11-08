@@ -27,7 +27,7 @@ export class VoiceMonitor extends LitElement {
     this.selectedReferenceNote = 'A4';
     this.isPlayingReference = false;
     this.isDarkMode = false;
-
+    
     this.audioProcessor = null;
     this.referencePlayer = null;
     this.wakeLock = null;
@@ -41,12 +41,12 @@ export class VoiceMonitor extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-
+    
     // Detect dark mode preference
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     this.isDarkMode = darkModeQuery.matches;
     this.updateDarkMode();
-
+    
     // Listen for dark mode changes
     this.darkModeHandler = (e) => {
       this.isDarkMode = e.matches;
@@ -57,7 +57,7 @@ export class VoiceMonitor extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-
+    
     // Cleanup
     if (this.audioProcessor) {
       this.audioProcessor.stop();
@@ -66,7 +66,7 @@ export class VoiceMonitor extends LitElement {
       this.referencePlayer.stop();
     }
     this.releaseWakeLock();
-
+    
     // Remove event listener
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     darkModeQuery.removeEventListener('change', this.darkModeHandler);
@@ -116,7 +116,7 @@ export class VoiceMonitor extends LitElement {
     console.log('Starting session...');
     this.audioProcessor = new AudioProcessor((freq) => this.handlePitchUpdate(freq));
     const success = await this.audioProcessor.start();
-
+    
     if (success) {
       this.sessionActive = true;
       await this.requestWakeLock();
@@ -132,7 +132,7 @@ export class VoiceMonitor extends LitElement {
       this.audioProcessor.stop();
       this.audioProcessor = null;
     }
-
+    
     this.sessionActive = false;
     this.monitoringEnabled = false;
     this.currentNote = '--';
@@ -144,7 +144,7 @@ export class VoiceMonitor extends LitElement {
     if (!this.monitoringEnabled) {
       // Trying to enable monitoring - check for headphones
       const hasHeadphones = await detectHeadphones();
-
+      
       if (!hasHeadphones) {
         // Show warning but still allow monitoring
         this.showHeadphoneWarning = true;
@@ -152,7 +152,7 @@ export class VoiceMonitor extends LitElement {
           this.showHeadphoneWarning = false;
         }, 4000);
       }
-
+      
       // Enable monitoring regardless (user knows the risks)
       this.audioProcessor?.enableMonitoring();
       this.monitoringEnabled = true;
@@ -165,17 +165,17 @@ export class VoiceMonitor extends LitElement {
 
   playReference() {
     if (this.isPlayingReference) return;
-
+    
     const { noteName, octave } = parseNoteString(this.selectedReferenceNote);
     const frequency = noteToFrequency(noteName, octave);
-
+    
     if (!this.referencePlayer) {
       this.referencePlayer = new ReferencePlayer();
     }
-
+    
     this.referencePlayer.playTone(frequency, 3000);
     this.isPlayingReference = true;
-
+    
     setTimeout(() => {
       this.isPlayingReference = false;
     }, 3000);
@@ -184,14 +184,14 @@ export class VoiceMonitor extends LitElement {
   getTunerBarStyle() {
     const clampedCents = Math.max(-50, Math.min(50, this.centsOff));
     const percentage = ((clampedCents + 50) / 100) * 100;
-
+    
     let color;
     if (Math.abs(clampedCents) <= 10) {
       color = '#10b981'; // Green
     } else {
       color = '#fbbf24'; // Yellow
     }
-
+    
     return `width: ${percentage}%; background-color: ${color}; transition: all 0.2s ease-out;`;
   }
 
@@ -227,13 +227,14 @@ export class VoiceMonitor extends LitElement {
 
   renderReadyState() {
     return html`
-      <div class="text-center space-y-6">
-        <div class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-lg">
+      <!-- Ready Card -->
+      <div class="rounded-xl shadow-md p-6 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'} text-center">
+        <div class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-base mb-4">
           Ready to start practicing
         </div>
         <button
           @click=${this.startSession}
-          class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors duration-200"
+          class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm"
         >
           START SESSION
         </button>
@@ -243,16 +244,15 @@ export class VoiceMonitor extends LitElement {
 
   renderActiveSession() {
     return html`
-      <div class="space-y-6">
-        
-        <!-- Session Status -->
+      <!-- Session Status Card -->
+      <div class="rounded-xl shadow-md p-4 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'}">
         <div class="flex items-center justify-center gap-2">
           <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} font-semibold">
+          <span class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} font-semibold text-sm">
             SESSION ACTIVE
           </span>
           ${this.monitoringEnabled ? html`
-            <span class="${this.isDarkMode ? 'text-green-400' : 'text-green-600'} ml-2 text-sm">
+            <span class="${this.isDarkMode ? 'text-green-400' : 'text-green-600'} ml-2 text-xs">
               🎧 Monitoring ON
             </span>
           ` : ''}
@@ -260,23 +260,25 @@ export class VoiceMonitor extends LitElement {
 
         <!-- Headphone Warning -->
         ${this.showHeadphoneWarning ? html`
-          <div class="bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3 text-center">
-            <p class="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
+          <div class="bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-lg p-2 text-center mt-3">
+            <p class="text-yellow-800 dark:text-yellow-200 text-xs font-medium">
               ⚠️ For best results, use wired headphones
             </p>
           </div>
         ` : ''}
+      </div>
 
-        <!-- Note Display -->
-        <div class="text-center py-8">
-          <div class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-7xl font-bold">
+      <!-- Pitch Display Card -->
+      <div class="rounded-xl shadow-md p-6 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'}">
+        <div class="text-center mb-4">
+          <div class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-6xl font-bold">
             ${this.currentNote}
           </div>
         </div>
 
         <!-- Tuner Bar -->
         <div class="space-y-2">
-          <div class="${this.isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} h-12 rounded-lg overflow-hidden relative">
+          <div class="${this.isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} h-10 rounded-lg overflow-hidden relative">
             <div class="absolute inset-0 flex items-center justify-center">
               <div class="${this.isDarkMode ? 'bg-gray-500' : 'bg-gray-400'} w-0.5 h-full"></div>
             </div>
@@ -288,61 +290,68 @@ export class VoiceMonitor extends LitElement {
             <span>sharp</span>
           </div>
         </div>
+      </div>
 
-        <!-- Monitoring Toggle -->
-        <div class="flex items-center justify-between py-3">
-          <span class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-medium">
+      <!-- Live Audio Card -->
+      <div class="rounded-xl shadow-md p-4 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'}">
+        <div class="flex items-center justify-between">
+          <span class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-medium text-sm">
             Live Audio:
           </span>
           <button
             @click=${this.toggleMonitoring}
-            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${this.monitoringEnabled
-        ? 'bg-green-600 text-white'
-        : this.isDarkMode
-          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-      }"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+              this.monitoringEnabled
+                ? 'bg-green-600 text-white'
+                : this.isDarkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }"
           >
             ${this.monitoringEnabled ? '🔊' : '🔇'}
             ${this.monitoringEnabled ? 'ON' : 'OFF'}
           </button>
         </div>
+      </div>
 
-        <!-- Reference Player -->
-        <div class="space-y-2">
-          <label class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} block text-sm font-medium">
-            Reference Note:
-          </label>
-          <div class="flex gap-2">
-            <select
-              .value=${this.selectedReferenceNote}
-              @change=${(e) => { this.selectedReferenceNote = e.target.value; }}
-              class="flex-1 px-4 py-2 rounded-lg border ${this.isDarkMode
-        ? 'bg-gray-700 border-gray-600 text-white'
-        : 'bg-white border-gray-300 text-gray-900'
-      } focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              ${this.referenceNotes.map(note => html`
-                <option value="${note}">${note}</option>
-              `)}
-            </select>
-            <button
-              @click=${this.playReference}
-              ?disabled=${this.isPlayingReference}
-              class="px-6 py-2 rounded-lg font-medium transition-colors ${this.isPlayingReference
-        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-        : 'bg-blue-600 hover:bg-blue-700 text-white'
-      }"
-            >
-              ${this.isPlayingReference ? '⏹' : '▶'}
-            </button>
-          </div>
+      <!-- Reference Player Card -->
+      <div class="rounded-xl shadow-md p-4 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'}">
+        <label class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} block text-sm font-medium mb-2">
+          Reference Note:
+        </label>
+        <div class="flex gap-2">
+          <select
+            .value=${this.selectedReferenceNote}
+            @change=${(e) => { this.selectedReferenceNote = e.target.value; }}
+            class="flex-1 px-3 py-2 rounded-lg border text-sm ${
+              this.isDarkMode
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+            } focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            ${this.referenceNotes.map(note => html`
+              <option value="${note}">${note}</option>
+            `)}
+          </select>
+          <button
+            @click=${this.playReference}
+            ?disabled=${this.isPlayingReference}
+            class="px-5 py-2 rounded-lg font-medium transition-colors text-sm ${
+              this.isPlayingReference
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }"
+          >
+            ${this.isPlayingReference ? '⏹' : '▶'}
+          </button>
         </div>
+      </div>
 
-        <!-- Stop Button -->
+      <!-- Stop Button Card -->
+      <div class="rounded-xl shadow-md p-4 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'} text-center">
         <button
           @click=${this.stopSession}
-          class="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors duration-200 mt-6"
+          class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm"
         >
           STOP SESSION
         </button>
