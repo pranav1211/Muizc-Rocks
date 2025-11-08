@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { AudioProcessor } from '../audio/audio-processor.js';
 import { ReferencePlayer } from '../audio/reference-player.js';
 import { frequencyToNote, generateReferenceNotes, parseNoteString, noteToFrequency } from '../utils/note-converter.js';
+import { detectHeadphones } from '../utils/headphone-detector.js';
 import './visual-metronome.js';
 
 export class VoiceMonitor extends LitElement {
@@ -26,7 +27,7 @@ export class VoiceMonitor extends LitElement {
     this.selectedReferenceNote = 'A4';
     this.isPlayingReference = false;
     this.isDarkMode = false;
-    
+
     this.audioProcessor = null;
     this.referencePlayer = null;
     this.wakeLock = null;
@@ -40,12 +41,12 @@ export class VoiceMonitor extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    
+
     // Detect dark mode preference
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     this.isDarkMode = darkModeQuery.matches;
     this.updateDarkMode();
-    
+
     // Listen for dark mode changes
     this.darkModeHandler = (e) => {
       this.isDarkMode = e.matches;
@@ -56,7 +57,7 @@ export class VoiceMonitor extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    
+
     // Cleanup
     if (this.audioProcessor) {
       this.audioProcessor.stop();
@@ -65,7 +66,7 @@ export class VoiceMonitor extends LitElement {
       this.referencePlayer.stop();
     }
     this.releaseWakeLock();
-    
+
     // Remove event listener
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     darkModeQuery.removeEventListener('change', this.darkModeHandler);
@@ -115,7 +116,7 @@ export class VoiceMonitor extends LitElement {
     console.log('Starting session...');
     this.audioProcessor = new AudioProcessor((freq) => this.handlePitchUpdate(freq));
     const success = await this.audioProcessor.start();
-    
+
     if (success) {
       this.sessionActive = true;
       await this.requestWakeLock();
@@ -131,7 +132,7 @@ export class VoiceMonitor extends LitElement {
       this.audioProcessor.stop();
       this.audioProcessor = null;
     }
-    
+
     this.sessionActive = false;
     this.monitoringEnabled = false;
     this.currentNote = '--';
@@ -142,18 +143,17 @@ export class VoiceMonitor extends LitElement {
   async toggleMonitoring() {
     if (!this.monitoringEnabled) {
       // Trying to enable monitoring - check for headphones
-      // Pass the existing audio stream to avoid requesting permission twice
-      const stream = this.audioProcessor?.stream;
-      // const hasHeadphones = await detectHeadphones(stream);
+      const hasHeadphones = await detectHeadphones();
 
-      // if (!hasHeadphones) {
-      //   this.showHeadphoneWarning = true;
-      //   setTimeout(() => {
-      //     this.showHeadphoneWarning = false;
-      //   }, 3000);
-      //   return;
-      // }
+      if (!hasHeadphones) {
+        // Show warning but still allow monitoring
+        this.showHeadphoneWarning = true;
+        setTimeout(() => {
+          this.showHeadphoneWarning = false;
+        }, 4000);
+      }
 
+      // Enable monitoring regardless (user knows the risks)
       this.audioProcessor?.enableMonitoring();
       this.monitoringEnabled = true;
     } else {
@@ -165,17 +165,17 @@ export class VoiceMonitor extends LitElement {
 
   playReference() {
     if (this.isPlayingReference) return;
-    
+
     const { noteName, octave } = parseNoteString(this.selectedReferenceNote);
     const frequency = noteToFrequency(noteName, octave);
-    
+
     if (!this.referencePlayer) {
       this.referencePlayer = new ReferencePlayer();
     }
-    
+
     this.referencePlayer.playTone(frequency, 3000);
     this.isPlayingReference = true;
-    
+
     setTimeout(() => {
       this.isPlayingReference = false;
     }, 3000);
@@ -184,14 +184,14 @@ export class VoiceMonitor extends LitElement {
   getTunerBarStyle() {
     const clampedCents = Math.max(-50, Math.min(50, this.centsOff));
     const percentage = ((clampedCents + 50) / 100) * 100;
-    
+
     let color;
     if (Math.abs(clampedCents) <= 10) {
       color = '#10b981'; // Green
     } else {
       color = '#fbbf24'; // Yellow
     }
-    
+
     return `width: ${percentage}%; background-color: ${color}; transition: all 0.2s ease-out;`;
   }
 
@@ -201,26 +201,23 @@ export class VoiceMonitor extends LitElement {
       <visual-metronome></visual-metronome>
       
       <!-- Main App -->
-      <div class="min-h-screen ${this.isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-200">
-        <div class="max-w-md mx-auto p-6 space-y-6">
+      <div class="min-h-screen ${this.isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-200 pb-6">
+        <div class="max-w-2xl mx-auto p-4 space-y-4">
           
           <!-- Header -->
-          <div class="text-center pt-8">
-            <h1 class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-3xl font-bold">
+          <div class="text-center pt-6 pb-2">
+            <h1 class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-2xl font-bold">
               Voice Monitor
             </h1>
-            <p class="${this.isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm mt-2">
+            <p class="${this.isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-xs mt-1">
               Real-time Pitch Trainer
             </p>
           </div>
 
-          <!-- Main Content -->
-          <div class="rounded-2xl shadow-lg p-8 ${this.isDarkMode ? 'bg-gray-800' : 'bg-white'}">
-            ${!this.sessionActive ? this.renderReadyState() : this.renderActiveSession()}
-          </div>
+          ${!this.sessionActive ? this.renderReadyState() : this.renderActiveSession()}
 
           <!-- Footer -->
-          <div class="text-center text-xs ${this.isDarkMode ? 'text-gray-500' : 'text-gray-500'}">
+          <div class="text-center text-xs ${this.isDarkMode ? 'text-gray-500' : 'text-gray-500'} pt-2">
             Use wired headphones for best results
           </div>
         </div>
@@ -265,7 +262,7 @@ export class VoiceMonitor extends LitElement {
         ${this.showHeadphoneWarning ? html`
           <div class="bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3 text-center">
             <p class="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
-              ⚠️ Connect headphones to enable live monitoring
+              ⚠️ For best results, use wired headphones
             </p>
           </div>
         ` : ''}
@@ -299,13 +296,12 @@ export class VoiceMonitor extends LitElement {
           </span>
           <button
             @click=${this.toggleMonitoring}
-            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              this.monitoringEnabled
-                ? 'bg-green-600 text-white'
-                : this.isDarkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${this.monitoringEnabled
+        ? 'bg-green-600 text-white'
+        : this.isDarkMode
+          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      }"
           >
             ${this.monitoringEnabled ? '🔊' : '🔇'}
             ${this.monitoringEnabled ? 'ON' : 'OFF'}
@@ -321,11 +317,10 @@ export class VoiceMonitor extends LitElement {
             <select
               .value=${this.selectedReferenceNote}
               @change=${(e) => { this.selectedReferenceNote = e.target.value; }}
-              class="flex-1 px-4 py-2 rounded-lg border ${
-                this.isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-4 py-2 rounded-lg border ${this.isDarkMode
+        ? 'bg-gray-700 border-gray-600 text-white'
+        : 'bg-white border-gray-300 text-gray-900'
+      } focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               ${this.referenceNotes.map(note => html`
                 <option value="${note}">${note}</option>
@@ -334,11 +329,10 @@ export class VoiceMonitor extends LitElement {
             <button
               @click=${this.playReference}
               ?disabled=${this.isPlayingReference}
-              class="px-6 py-2 rounded-lg font-medium transition-colors ${
-                this.isPlayingReference
-                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }"
+              class="px-6 py-2 rounded-lg font-medium transition-colors ${this.isPlayingReference
+        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+        : 'bg-blue-600 hover:bg-blue-700 text-white'
+      }"
             >
               ${this.isPlayingReference ? '⏹' : '▶'}
             </button>
