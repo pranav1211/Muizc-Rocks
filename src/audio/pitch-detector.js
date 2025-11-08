@@ -8,9 +8,9 @@ export class PitchDetector {
 
     // Smoothing parameters - adjust these for sensitivity
     this.pitchHistory = [];
-    this.historySize = 5;  // Number of consecutive detections needed (3-10)
-    this.pitchTolerance = 10;  // Hz tolerance for "same" pitch (5-20)
-    this.rmsThreshold = 0.05;  // Volume threshold (0.01-0.1)
+    this.historySize = 3;  // Number of consecutive detections needed (3-10)
+    this.pitchTolerance = 5;  // Hz tolerance for "same" pitch (5-20)
+    this.rmsThreshold = 0.03;  // Volume threshold (0.01-0.1)
     this.correlationThreshold = 0.92;  // Correlation quality (0.9-0.95)
     this.minCorrelationQuality = 0.05;  // Minimum correlation strength (0.01-0.1)
   }
