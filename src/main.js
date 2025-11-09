@@ -3,6 +3,7 @@ import './style.css';
 // Import all modular components
 import './components/VisualMetronome/VisualMetronome.js';
 import './components/PitchDetector/PitchDetector.js';
+import './components/VoiceFeedback/VoiceFeedback.js';
 import './components/PlaybackModule/PlaybackModule.js';
 import './components/NotePlayer/NotePlayer.js';
 import './components/MuzicApp/MuzicApp.js';

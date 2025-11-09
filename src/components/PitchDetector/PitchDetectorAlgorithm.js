@@ -1,10 +1,8 @@
 /**
  * Improved pitch detection using autocorrelation (ACF2+ algorithm)
  * Based on Chris Wilson's well-tested implementation
- *
- * NOTE: DO NOT MODIFY THIS ALGORITHM - IT WORKS PERFECTLY
  */
-export class PitchDetectorAlgorithm {
+export class PitchDetector {
   constructor(audioContext, sampleRate) {
     this.audioContext = audioContext;
     this.sampleRate = sampleRate;
