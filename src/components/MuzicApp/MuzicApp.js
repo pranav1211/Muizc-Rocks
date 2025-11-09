@@ -93,45 +93,66 @@ export class MuzicApp extends LitElement {
         </header>
 
         <!-- Main Content Area -->
-        <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
           <!-- Pitch Monitor Section -->
-          <section class="${this.isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl border shadow-lg overflow-hidden">
-            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-gray-800' : 'bg-gradient-to-r from-purple-100 to-blue-100 border-gray-200'} border-b px-4 sm:px-6 py-3">
-              <h2 class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-lg font-semibold flex items-center gap-2">
-                <span class="text-xl">🎤</span>
-                Pitch Monitor
+          <section
+            class="${this.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-3xl border-2 shadow-2xl overflow-hidden"
+            role="region"
+            aria-labelledby="pitch-monitor-heading"
+          >
+            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-purple-900/60 to-blue-900/60 border-gray-700' : 'bg-gradient-to-r from-purple-100 to-blue-100 border-gray-200'} border-b-2 px-6 py-4">
+              <h2
+                id="pitch-monitor-heading"
+                class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-xl sm:text-2xl font-bold flex items-center gap-3"
+              >
+                <span class="text-2xl" aria-hidden="true">🎤</span>
+                <span>Pitch Monitor</span>
               </h2>
-              <p class="${this.isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-xs mt-0.5">
-                Real-time frequency detection
+              <p class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm mt-1">
+                Real-time frequency detection and voice feedback
               </p>
             </div>
             <pitch-detector></pitch-detector>
           </section>
 
           <!-- Metronome Section -->
-          <section class="${this.isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl border shadow-lg overflow-hidden">
-            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-green-900/50 to-teal-900/50 border-gray-800' : 'bg-gradient-to-r from-green-100 to-teal-100 border-gray-200'} border-b px-4 sm:px-6 py-3">
-              <h2 class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-lg font-semibold flex items-center gap-2">
-                <span class="text-xl">⏱️</span>
-                Visual Metronome
+          <section
+            class="${this.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-3xl border-2 shadow-2xl overflow-hidden"
+            role="region"
+            aria-labelledby="metronome-heading"
+          >
+            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-green-900/60 to-teal-900/60 border-gray-700' : 'bg-gradient-to-r from-green-100 to-teal-100 border-gray-200'} border-b-2 px-6 py-4">
+              <h2
+                id="metronome-heading"
+                class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-xl sm:text-2xl font-bold flex items-center gap-3"
+              >
+                <span class="text-2xl" aria-hidden="true">⏱️</span>
+                <span>Visual Metronome</span>
               </h2>
-              <p class="${this.isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-xs mt-0.5">
-                Keep perfect timing
+              <p class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm mt-1">
+                Keep perfect timing with visual and audio cues
               </p>
             </div>
             <visual-metronome></visual-metronome>
           </section>
 
           <!-- Note Player Section -->
-          <section class="${this.isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl border shadow-lg overflow-hidden">
-            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-orange-900/50 to-red-900/50 border-gray-800' : 'bg-gradient-to-r from-orange-100 to-red-100 border-gray-200'} border-b px-4 sm:px-6 py-3">
-              <h2 class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-lg font-semibold flex items-center gap-2">
-                <span class="text-xl">🎹</span>
-                Note Player
+          <section
+            class="${this.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} rounded-3xl border-2 shadow-2xl overflow-hidden"
+            role="region"
+            aria-labelledby="note-player-heading"
+          >
+            <div class="${this.isDarkMode ? 'bg-gradient-to-r from-orange-900/60 to-red-900/60 border-gray-700' : 'bg-gradient-to-r from-orange-100 to-red-100 border-gray-200'} border-b-2 px-6 py-4">
+              <h2
+                id="note-player-heading"
+                class="${this.isDarkMode ? 'text-white' : 'text-gray-900'} text-xl sm:text-2xl font-bold flex items-center gap-3"
+              >
+                <span class="text-2xl" aria-hidden="true">🎹</span>
+                <span>Note Player</span>
               </h2>
-              <p class="${this.isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-xs mt-0.5">
-                Practice with reference tones
+              <p class="${this.isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm mt-1">
+                Practice with reference tones and scales
               </p>
             </div>
             <note-player></note-player>
